@@ -89,6 +89,17 @@ app.post('/pusher/auth', (request, response) => {
   response.send(auth);
 });
 
+app.post("/pusher/user-auth", (request, response) => {
+  const socketId = request.body.socket_id;
+  const userData = {
+    id: request.session.username,
+    email: request.session.email,
+    fullname: request.session.fullname,
+  };
+  const authUser = pusher.authenticateUser(socketId, userData);
+  response.send(authUser);
+});
+
 app.listen(3000, () => {
   console.log('Server is up on 3000')
 });
