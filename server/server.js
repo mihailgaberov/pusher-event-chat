@@ -18,14 +18,10 @@ const pusher = new Pusher({
   forceTLS: true,
 });
 
-
-const connection = mysql.createConnection({
-  host: '127.0.0.1',
-  port: '3306',
-  user: 'root',
-  password: process.env.MYSQLDB_PASS,
-  database: 'eventdb'
-});
+const warningEvent = 'client-warn-user'
+const terminateEvent = 'client-terminate-user'
+const warningMessage = 'This is your first warning. Further misbehaving will lead to your removal from the event.'
+const terminateMessage = 'Your chat sessions have been terminated by the Admin.'
 
 const app = express();
 app.use(session({
@@ -38,7 +34,21 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
 }));
-app.use(express.static(path.join(__dirname, '/../public')));
+
+app.use(express.static(path.join(__dirname, '/../public/*')));
+
+app.listen(3000, () => {
+  console.log('Server is up on 3000')
+});
+
+const connection = mysql.createConnection({
+  host: '127.0.0.1',
+  port: '3306',
+  user: 'root',
+  password: process.env.DB_PASSWORD,
+  database: 'eventdb'
+});
+
 
 app.get('/', function (request, response) {
   if (request.session.loggedIn) {
@@ -56,6 +66,7 @@ app.post('/login', function (request, response) {
   let email = request.body.email;
   let ticket = request.body.ticket;
   if (email && ticket) {
+
     connection.query('SELECT * FROM accounts WHERE email = ? AND ticket = ?', [email, sha512(ticket)], function (error, result, fields) {
       if (error) throw error;
       if (result.length > 0) {
@@ -100,6 +111,9 @@ app.post("/pusher/user-auth", (request, response) => {
   response.send(authUser);
 });
 
-app.listen(3000, () => {
-  console.log('Server is up on 3000')
+app.post('/warn', (request, response) => {
+  const warnResp = pusher.sendToUser(request.body.user_id, warningEvent, {
+    message: warningMessage
+  });
+  response.send(warnResp);
 });
