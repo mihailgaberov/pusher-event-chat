@@ -37,8 +37,8 @@ app.use(bodyParser.urlencoded({
 
 app.use(express.static(path.join(__dirname, '/../public/*')));
 
-app.listen(3000, () => {
-  console.log('Server is up on 3000')
+app.listen(4000, () => {
+  console.log('Server is up on 4000')
 });
 
 const connection = mysql.createConnection({
